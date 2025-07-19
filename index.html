@@ -1,45 +1,457 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Budget Tracker</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Tracker</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+    <script src="https://unpkg.com/lodash@4.17.21/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-  <nav>
-    <h1>Budget Tracker</h1>
-    <div id="nav-buttons">
-      <button data-page="dashboard">Dashboard</button>
-      <button data-page="income">Income</button>
-      <button data-page="expenses">Expenses</button>
-      <button data-page="review">Review</button>
-    </div>
-  </nav>
+    <div id="root"></div>
 
-  <main id="app"></main>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } = Recharts;
+        const { Plus, Trash2, DollarSign, Home, BarChart3, CreditCard, Target, Wallet } = lucide;
 
-  <div id="modal-overlay" class="hidden">
-    <div class="modal">
-      <h2>Add Expense</h2>
-      <input id="desc-input" placeholder="Description" />
-      <input id="amount-input" type="number" placeholder="Amount" />
-      <select id="category-input">
-        <option value="needs">Needs</option>
-        <option value="wants">Wants</option>
-        <option value="savings">Savings</option>
-      </select>
-      <input id="date-input" type="date" />
-      <div class="modal-actions">
-        <button id="cancel-btn">Cancel</button>
-        <button id="add-btn">Add</button>
-      </div>
-    </div>
-  </div>
+        const BudgetTrackerApp = () => {
+          const [currentPage, setCurrentPage] = useState('dashboard');
+          const [netIncome, setNetIncome] = useState(5000);
+          const [budgetBreakdown, setbudgetBreakdown] = useState({ needs: 50, wants: 30, savings: 20 });
+          const [expenses, setExpenses] = useState([]);
+          const [showAddExpense, setShowAddExpense] = useState(false);
+          const [expenseForm, setExpenseForm] = useState({
+            description: '',
+            amount: '',
+            category: 'needs',
+            date: new Date().toISOString().split('T')[0]
+          });
 
-  <button id="quick-add-btn" title="Add Expense">+</button>
+          useEffect(() => {
+            const demoExpenses = [
+              { id: 1, description: 'Rent', amount: 100, category: 'needs', date: '2025-07-01' },
+              { id: 2, description: 'Groceries', amount: 150, category: 'needs', date: '2025-07-03' },
+              { id: 3, description: 'Netflix', amount: 20, category: 'wants', date: '2025-07-05' },
+              { id: 4, description: 'Outings', amount: 300, category: 'wants', date: '2025-07-10' },
+              { id: 5, description: 'Savings', amount: 200, category: 'savings', date: '2025-07-12' }
+            ];
+            setExpenses(demoExpenses);
+          }, []);
 
-  <script src="chart.min.js"></script>
-  <script src="script.js"></script>
+          const calcBudget = () => _.mapValues(budgetBreakdown, (percentage) => (netIncome * percentage) / 100);
+
+          const calcSpending = () => {
+            const grouped = _.groupBy(expenses, 'category');
+            return _.mapValues(grouped, (categoryExpenses) => _.sumBy(categoryExpenses, 'amount'));
+          };
+
+          const getBudget = () => {
+            const allocations = calcBudget();
+            const spending = calcSpending();
+            
+            return _.mapValues(allocations, (allocated, category) => ({ 
+              allocated,
+              spent: spending[category] || 0,
+              remaining: allocated - (spending[category] || 0),
+              percentage: ((spending[category] || 0) / allocated) * 100
+            }));
+          };
+
+          const addExpense = () => {
+            if (expenseForm.description && expenseForm.amount) {
+              const newExpense = {
+                id: Date.now(),
+                ...expenseForm,
+                amount: parseFloat(expenseForm.amount)
+              };
+              setExpenses([...expenses, newExpense]);
+              setExpenseForm({
+                description: '',
+                amount: '',
+                category: 'needs',
+                date: new Date().toISOString().split('T')[0]
+              });
+              setShowAddExpense(false);
+            }
+          };
+
+          const Navigation = () => (
+            React.createElement('nav', { className: "bg-black text-white p-4 border-b-2 border-white-500" },
+              React.createElement('div', { className: "flex justify-between items-center" },
+                React.createElement('h1', { className: "text-xl font-bold flex items-center gap-3" },
+                  React.createElement(Wallet, { className: "w-5 h-5" }),
+                  'Budget Tracker'
+                ),
+                React.createElement('div', { className: "flex gap-4" },
+                  [
+                    { key: 'dashboard', label: 'Dashboard', icon: Home },
+                    { key: 'income', label: 'Income', icon: DollarSign },
+                    { key: 'expenses', label: 'Expenses', icon: CreditCard },
+                    { key: 'review', label: 'Review', icon: BarChart3 }
+                  ].map(({ key, label, icon: Icon }) =>
+                    React.createElement('button', {
+                      key: key,
+                      onClick: () => setCurrentPage(key),
+                      className: `flex items-center gap-2 px-3 py-2 rounded border ${
+                        currentPage === key 
+                          ? 'bg-white text-black border-white' 
+                          : 'bg-black text-white border-white-500 hover:bg-gray-800'
+                      }`
+                    },
+                      React.createElement(Icon, { className: "w-5 h-5" }),
+                      label
+                    )
+                  )
+                )
+              )
+            )
+          );
+
+          const DashboardPage = () => {
+            const budgetStatus = getBudget();
+            const totalSpent = _.sumBy(expenses, 'amount');
+            const remaining = netIncome - totalSpent;
+
+            const pieData = [
+              { name: 'Needs', value: budgetStatus.needs?.spent || 0, color: '#ef4444' },
+              { name: 'Wants', value: budgetStatus.wants?.spent || 0, color: '#f59e0b' },
+              { name: 'Savings', value: budgetStatus.savings?.spent || 0, color: '#10b981' }
+            ];
+
+            return (
+              React.createElement('div', { className: "p-6 max-w-7xl mx-auto bg-white" },
+                React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" },
+                  React.createElement('div', { className: "bg-white p-6 rounded-lg border-2 border-black" },
+                    React.createElement('div', { className: "flex items-center justify-between" },
+                      React.createElement('div', {},
+                        React.createElement('p', { className: "text-sm text-gray-600" }, 'Net Income'),
+                        React.createElement('p', { className: "text-2xl font-bold text-black" }, `$${netIncome.toLocaleString()}`)
+                      ),
+                      React.createElement(DollarSign, { className: "w-8 h-8 text-black" })
+                    )
+                  ),
+                  React.createElement('div', { className: "bg-white p-6 rounded-lg border-2 border-black" },
+                    React.createElement('div', { className: "flex items-center justify-between" },
+                      React.createElement('div', {},
+                        React.createElement('p', { className: "text-sm text-gray-600" }, 'Total Spent'),
+                        React.createElement('p', { className: "text-2xl font-bold text-black" }, `$${totalSpent.toLocaleString()}`)
+                      ),
+                      React.createElement(Target, { className: "w-8 h-8 text-black" })
+                    )
+                  ),
+                  React.createElement('div', { className: "bg-white p-6 rounded-lg border-2 border-black" },
+                    React.createElement('div', { className: "flex items-center justify-between" },
+                      React.createElement('div', {},
+                        React.createElement('p', { className: "text-sm text-gray-600" }, 'Remaining'),
+                        React.createElement('p', { className: "text-2xl font-bold text-black" }, `$${remaining.toLocaleString()}`)
+                      ),
+                      React.createElement(Wallet, { className: "w-8 h-8 text-black" })
+                    )
+                  ),
+                  React.createElement('div', { className: "bg-white p-6 rounded-lg border-2 border-black" },
+                    React.createElement('div', { className: "flex items-center justify-between" },
+                      React.createElement('div', {},
+                        React.createElement('p', { className: "text-sm text-gray-600" }, 'Budget Health'),
+                        React.createElement('p', { className: "text-2xl font-bold text-black" }, remaining >= 0 ? 'Good' : 'Over')
+                      ),
+                      React.createElement(BarChart3, { className: "w-8 h-8 text-black" })
+                    )
+                  )
+                ),
+                React.createElement('div', { className: "grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8" },
+                  React.createElement('div', { className: "bg-white p-6 rounded-lg border-2 border-black" },
+                    React.createElement('h3', { className: "text-lg font-semibold mb-4 text-black" }, 'Budget Allocation'),
+                    React.createElement(ResponsiveContainer, { width: "100%", height: 300 },
+                      React.createElement(PieChart, {},
+                        React.createElement(Pie, {
+                          data: pieData,
+                          cx: "50%",
+                          cy: "50%",
+                          innerRadius: 60,
+                          outerRadius: 120,
+                          paddingAngle: 5,
+                          dataKey: "value"
+                        },
+                          pieData.map((entry, index) =>
+                            React.createElement(Cell, { key: `cell-${index}`, fill: entry.color })
+                          )
+                        ),
+                        React.createElement(Tooltip, { formatter: (value) => `$${value.toLocaleString()}` }),
+                        React.createElement(Legend, {})
+                      )
+                    )
+                  ),
+                  React.createElement('div', { className: "bg-white p-6 rounded-lg border-2 border-black" },
+                    React.createElement('h3', { className: "text-lg font-semibold mb-4 text-black" }, 'Category Status'),
+                    React.createElement('div', { className: "space-y-4" },
+                      Object.entries(budgetStatus).map(([category, status]) =>
+                        React.createElement('div', { key: category, className: "border-b-2 border-gray-300 pb-3" },
+                          React.createElement('div', { className: "flex justify-between items-center mb-2" },
+                            React.createElement('span', { className: "font-medium capitalize text-black" }, category),
+                            React.createElement('span', { className: "text-sm text-gray-600" }, `$${status.remaining.toLocaleString()} remaining`)
+                          ),
+                          React.createElement('div', { className: "w-full bg-gray-300 rounded-full h-3 border border-black" },
+                            React.createElement('div', {
+                              className: `h-3 rounded-full ${status.percentage > 100 ? 'bg-gray-600' : 'bg-black'}`,
+                              style: { width: `${Math.min(status.percentage, 100)}%` }
+                            })
+                          ),
+                          React.createElement('div', { className: "flex justify-between text-sm text-gray-600 mt-1" },
+                            React.createElement('span', {}, `$${status.spent.toLocaleString()} spent`),
+                            React.createElement('span', {}, `$${status.allocated.toLocaleString()} allocated`)
+                          )
+                        )
+                      )
+                    )
+                  )
+                ),
+                React.createElement('div', { className: "bg-white p-6 rounded-lg border-2 border-black" },
+                  React.createElement('div', { className: "flex justify-between items-center mb-4" },
+                    React.createElement('h3', { className: "text-lg font-semibold text-black" }, 'Recent Expenses'),
+                    React.createElement('button', {
+                      onClick: () => setShowAddExpense(true),
+                      className: "flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg border-2 border-black hover:bg-gray-800"
+                    },
+                      React.createElement(Plus, { className: "w-4 h-4" }),
+                      'Add Expense'
+                    )
+                  ),
+                  React.createElement('div', { className: "overflow-x-auto" },
+                    React.createElement('table', { className: "w-full border-2 border-black" },
+                      React.createElement('thead', {},
+                        React.createElement('tr', { className: "border-b-2 border-black bg-gray-100" },
+                          React.createElement('th', { className: "text-left p-3 text-black" }, 'Date'),
+                          React.createElement('th', { className: "text-left p-3 text-black" }, 'Description'),
+                          React.createElement('th', { className: "text-left p-3 text-black" }, 'Category'),
+                          React.createElement('th', { className: "text-right p-3 text-black" }, 'Amount')
+                        )
+                      ),
+                      React.createElement('tbody', {},
+                        expenses.slice(-5).map(expense =>
+                          React.createElement('tr', { key: expense.id, className: "border-b border-gray-300" },
+                            React.createElement('td', { className: "p-3 text-black" }, expense.date),
+                            React.createElement('td', { className: "p-3 text-black" }, expense.description),
+                            React.createElement('td', { className: "p-3" },
+                              React.createElement('span', { className: "px-2 py-1 rounded-full text-xs bg-gray-200 text-black border border-black" }, expense.category)
+                            ),
+                            React.createElement('td', { className: "p-3 text-right text-black" }, `$${expense.amount.toLocaleString()}`)
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            );
+          };
+
+          const IncomePage = () => (
+            React.createElement('div', { className: "p-6 max-w-4xl mx-auto bg-white" },
+              React.createElement('div', { className: "bg-white p-6 rounded-lg border-2 border-black mb-8" },
+                React.createElement('h2', { className: "text-2xl font-bold mb-6 text-black" }, 'Managing Your Income'),
+                React.createElement('div', { className: "mb-8" },
+                  React.createElement('h3', { className: "text-lg font-semibold mb-4 text-black" }, 'Current Net Income'),
+                  React.createElement('div', { className: "bg-gray-100 p-4 rounded-lg border-2 border-black" },
+                    React.createElement('p', { className: "text-3xl font-bold text-black" }, `$${netIncome.toLocaleString()}`),
+                    React.createElement('p', { className: "text-gray-600" }, 'Take-Home Pay Per Month')
+                  )
+                ),
+                React.createElement('div', { className: "mb-8" },
+                  React.createElement('h3', { className: "text-lg font-semibold mb-4 text-black" }, 'Budget Breakdown'),
+                  React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-3 gap-4" },
+                    Object.entries(budgetBreakdown).map(([category, percentage]) =>
+                      React.createElement('div', { key: category, className: "bg-gray-100 p-4 rounded-lg border-2 border-black" },
+                        React.createElement('label', { className: "block text-sm font-medium text-black mb-2 capitalize" }, `${category} (%)`),
+                        React.createElement('input', {
+                          type: "number",
+                          value: percentage,
+                          onChange: (e) => setbudgetBreakdown(prev => ({
+                            ...prev,
+                            [category]: parseInt(e.target.value) || 0
+                          })),
+                          className: "w-full p-2 border-2 border-black rounded-md bg-white text-black"
+                        }),
+                        React.createElement('p', { className: "text-sm text-gray-600 mt-1" }, `$${((netIncome * percentage) / 100).toLocaleString()}`)
+                      )
+                    )
+                  )
+                ),
+                React.createElement('div', {},
+                  React.createElement('h3', { className: "text-lg font-semibold mb-4 text-black" }, 'Update Income'),
+                  React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-4" },
+                    React.createElement('input', {
+                      type: "number",
+                      value: netIncome,
+                      onChange: (e) => setNetIncome(parseFloat(e.target.value) || 0),
+                      className: "w-full p-2 border-2 border-black rounded-md bg-white text-black",
+                      placeholder: "Enter your take-home pay"
+                    }),
+                    React.createElement('button', { className: "bg-black text-white px-6 py-2 rounded-lg border-2 border-black hover:bg-gray-800" }, 'Update Income')
+                  )
+                )
+              )
+            )
+          );
+
+          const ExpensesPage = () => (
+            React.createElement('div', { className: "p-6 max-w-6xl mx-auto bg-white" },
+              React.createElement('div', { className: "bg-white p-6 rounded-lg border-2 border-black" },
+                React.createElement('div', { className: "flex justify-between items-center mb-6" },
+                  React.createElement('h2', { className: "text-2xl font-bold text-black" }, 'Expense Tracking'),
+                  React.createElement('button', {
+                    onClick: () => setShowAddExpense(true),
+                    className: "flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg border-2 border-black hover:bg-gray-800"
+                  },
+                    React.createElement(Plus, { className: "w-4 h-4" }),
+                    'Add Expense'
+                  )
+                ),
+                React.createElement('div', { className: "overflow-x-auto" },
+                  React.createElement('table', { className: "w-full border-2 border-black" },
+                    React.createElement('thead', {},
+                      React.createElement('tr', { className: "border-b-2 border-black bg-gray-100" },
+                        React.createElement('th', { className: "text-left p-3 text-black" }, 'Date'),
+                        React.createElement('th', { className: "text-left p-3 text-black" }, 'Description'),
+                        React.createElement('th', { className: "text-left p-3 text-black" }, 'Category'),
+                        React.createElement('th', { className: "text-right p-3 text-black" }, 'Amount'),
+                        React.createElement('th', { className: "text-center p-3 text-black" }, 'Actions')
+                      )
+                    ),
+                    React.createElement('tbody', {},
+                      expenses.map(expense =>
+                        React.createElement('tr', { key: expense.id, className: "border-b border-gray-300 hover:bg-gray-50" },
+                          React.createElement('td', { className: "p-3 text-black" }, expense.date),
+                          React.createElement('td', { className: "p-3 text-black" }, expense.description),
+                          React.createElement('td', { className: "p-3" },
+                            React.createElement('span', { className: "px-2 py-1 rounded-full text-xs bg-gray-200 text-black border border-black" }, expense.category)
+                          ),
+                          React.createElement('td', { className: "p-3 text-right text-black" }, `$${expense.amount.toLocaleString()}`),
+                          React.createElement('td', { className: "p-3 text-center" },
+                            React.createElement('button', {
+                              onClick: () => setExpenses(expenses.filter(e => e.id !== expense.id)),
+                              className: "text-black hover:text-gray-600"
+                            },
+                              React.createElement(Trash2, { className: "w-4 h-4" })
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          );
+
+          const ReviewPage = () => {
+            const monthlyTrend = [
+              { month: 'Jan', income: 4000, expenses: 3200 },
+              { month: 'Feb', income: 4000, expenses: 3400 },
+              { month: 'Mar', income: 4000, expenses: 3100 },
+              { month: 'Apr', income: 4000, expenses: 3600 },
+              { month: 'May', income: 4000, expenses: 3300 },
+              { month: 'Jun', income: 4000, expenses: 3500 },
+              { month: 'Jul', income: 4000, expenses: _.sumBy(expenses, 'amount') }
+            ];
+
+            return (
+              React.createElement('div', { className: "p-6 max-w-6xl mx-auto bg-white" },
+                React.createElement('h2', { className: "text-2xl font-bold mb-6 text-black" }, 'Monthly Review'),
+                React.createElement('div', { className: "bg-white p-6 rounded-lg border-2 border-black" },
+                  React.createElement('h3', { className: "text-lg font-semibold mb-4 text-black" }, 'Spending Trends'),
+                  React.createElement(ResponsiveContainer, { width: "100%", height: 400 },
+                    React.createElement(LineChart, { data: monthlyTrend },
+                      React.createElement(CartesianGrid, { strokeDasharray: "3 3" }),
+                      React.createElement(XAxis, { dataKey: "month" }),
+                      React.createElement(YAxis, {}),
+                      React.createElement(Tooltip, { formatter: (value) => `$${value.toLocaleString()}` }),
+                      React.createElement(Legend, {}),
+                      React.createElement(Line, { type: "monotone", dataKey: "income", stroke: "#10b981", strokeWidth: 2 }),
+                      React.createElement(Line, { type: "monotone", dataKey: "expenses", stroke: "#ef4444", strokeWidth: 2 })
+                    )
+                  )
+                )
+              )
+            );
+          };
+
+          const AddExpenseModel = () => (
+            showAddExpense && (
+              React.createElement('div', { className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" },
+                React.createElement('div', { className: "bg-white p-6 rounded-lg w-full max-w-md border-2 border-black" },
+                  React.createElement('h3', { className: "text-lg font-semibold mb-4 text-black" }, 'Add New Expense'),
+                  React.createElement('div', { className: "space-y-4" },
+                    React.createElement('input', {
+                      type: "text",
+                      value: expenseForm.description,
+                      onChange: (e) => setExpenseForm({...expenseForm, description: e.target.value}),
+                      className: "w-full p-2 border-2 border-black rounded-md bg-white text-black",
+                      placeholder: "Enter expense description"
+                    }),
+                    React.createElement('input', {
+                      type: "number",
+                      value: expenseForm.amount,
+                      onChange: (e) => setExpenseForm({...expenseForm, amount: e.target.value}),
+                      className: "w-full p-2 border-2 border-black rounded-md bg-white text-black",
+                      placeholder: "Enter amount"
+                    }),
+                    React.createElement('select', {
+                      value: expenseForm.category,
+                      onChange: (e) => setExpenseForm({...expenseForm, category: e.target.value}),
+                      className: "w-full p-2 border-2 border-black rounded-md bg-white text-black"
+                    },
+                      React.createElement('option', { value: "needs" }, 'Needs'),
+                      React.createElement('option', { value: "wants" }, 'Wants'),
+                      React.createElement('option', { value: "savings" }, 'Savings')
+                    ),
+                    React.createElement('input', {
+                      type: "date",
+                      value: expenseForm.date,
+                      onChange: (e) => setExpenseForm({...expenseForm, date: e.target.value}),
+                      className: "w-full p-2 border-2 border-black rounded-md bg-white text-black"
+                    })
+                  ),
+                  React.createElement('div', { className: "flex justify-end gap-2 mt-6" },
+                    React.createElement('button', {
+                      onClick: () => setShowAddExpense(false),
+                      className: "px-4 py-2 text-black hover:text-gray-600 border-2 border-black rounded-lg bg-white"
+                    }, 'Cancel'),
+                    React.createElement('button', {
+                      onClick: addExpense,
+                      className: "px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 border-2 border-black"
+                    }, 'Add Expense')
+                  )
+                )
+              )
+            )
+          );
+
+          const renderPage = () => {
+            switch (currentPage) {
+              case 'dashboard': return React.createElement(DashboardPage);
+              case 'income': return React.createElement(IncomePage);
+              case 'expenses': return React.createElement(ExpensesPage);
+              case 'review': return React.createElement(ReviewPage);
+              default: return React.createElement(DashboardPage);
+            }
+          };
+
+          return (
+            React.createElement('div', { className: "min-h-screen bg-white" },
+              React.createElement(Navigation),
+              renderPage(),
+              React.createElement(AddExpenseModel)
+            )
+          );
+        };
+
+        ReactDOM.render(React.createElement(BudgetTrackerApp), document.getElementById('root'));
+    </script>
 </body>
 </html>
