@@ -4,535 +4,884 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Budget Tracker</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
-    <script src="https://unpkg.com/lodash@4.17.21/lodash.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
     <style>
-        /* Ensure the page loads with some basic styling while JS loads */
-        body { font-family: system-ui, sans-serif; }
-        #root { min-height: 100vh; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: white;
+            min-height: 100vh;
+        }
+
+        .navigation {
+            background-color: black;
+            color: white;
+            padding: 1rem;
+            border-bottom: 2px solid #e5e5e5;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            border: 2px solid #e5e5e5;
+            background-color: black;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .nav-btn:hover {
+            background-color: #374151;
+        }
+
+        .nav-btn.active {
+            background-color: white;
+            color: black;
+            border-color: white;
+        }
+
+        .icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .page-container {
+            padding: 1.5rem;
+            max-width: 1280px;
+            margin: 0 auto;
+            background-color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid black;
+        }
+
+        .stat-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-text p:first-child {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .stat-text p:last-child {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: black;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid black;
+        }
+
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: black;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+        }
+
+        .category-status {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid black;
+        }
+
+        .category-item {
+            border-bottom: 2px solid #d1d5db;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-name {
+            font-weight: 500;
+            text-transform: capitalize;
+            color: black;
+        }
+
+        .category-remaining {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #d1d5db;
+            border-radius: 9999px;
+            height: 0.75rem;
+            border: 1px solid black;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.normal {
+            background-color: black;
+        }
+
+        .progress-fill.over {
+            background-color: #6b7280;
+        }
+
+        .progress-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        .expenses-table {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid black;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .add-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: black;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 2px solid black;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .add-btn:hover {
+            background-color: #374151;
+        }
+
+        table {
+            width: 100%;
+            border: 2px solid black;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        th {
+            background-color: #f3f4f6;
+            border-bottom: 2px solid black;
+            color: black;
+            font-weight: 600;
+        }
+
+        td {
+            color: black;
+        }
+
+        .amount-cell {
+            text-align: right;
+        }
+
+        .center-cell {
+            text-align: center;
+        }
+
+        .category-tag {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            background-color: #e5e7eb;
+            color: black;
+            border: 1px solid black;
+        }
+
+        .delete-btn {
+            color: black;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .delete-btn:hover {
+            color: #6b7280;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            max-width: 28rem;
+            border: 2px solid black;
+        }
+
+        .modal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: black;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid black;
+            border-radius: 0.375rem;
+            background-color: white;
+            color: black;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .cancel-btn {
+            padding: 0.5rem 1rem;
+            color: black;
+            border: 2px solid black;
+            border-radius: 0.5rem;
+            background-color: white;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .cancel-btn:hover {
+            color: #6b7280;
+        }
+
+        .submit-btn {
+            padding: 0.5rem 1rem;
+            background-color: black;
+            color: white;
+            border-radius: 0.5rem;
+            border: 2px solid black;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: #374151;
+        }
+
+        .income-section {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid black;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: black;
+        }
+
+        .subsection-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: black;
+        }
+
+        .income-display {
+            background-color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 2px solid black;
+            margin-bottom: 2rem;
+        }
+
+        .income-amount {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: black;
+        }
+
+        .income-label {
+            color: #6b7280;
+        }
+
+        .budget-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .budget-item {
+            background-color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 2px solid black;
+        }
+
+        .budget-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: black;
+            margin-bottom: 0.5rem;
+            text-transform: capitalize;
+        }
+
+        .budget-value {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        .update-income {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .update-btn {
+            background-color: black;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid black;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .update-btn:hover {
+            background-color: #374151;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-buttons {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
+            .nav-btn span {
+                display: none;
+            }
+            
+            .update-income {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div style="padding: 20px; text-align: center;">
-            <h1>Loading Budget Tracker...</h1>
-            <p>If this message persists, please check your browser console for errors.</p>
+    <nav class="navigation">
+        <div class="nav-container">
+            <h1 class="nav-title">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h13a1 1 0 0 1 1 1z"></path>
+                    <path d="M3 20.25A2.25 2.25 0 0 0 5.25 22.5h13.5A2.25 2.25 0 0 0 21 20.25V9.75a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9.75v10.5z"></path>
+                </svg>
+                Budget Tracker
+            </h1>
+            <div class="nav-buttons">
+                <button class="nav-btn active" data-page="dashboard">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                    </svg>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-btn" data-page="income">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    <span>Income</span>
+                </button>
+                <button class="nav-btn" data-page="expenses">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                        <line x1="1" y1="10" x2="23" y2="10"></line>
+                    </svg>
+                    <span>Expenses</span>
+                </button>
+                <button class="nav-btn" data-page="review">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>Review</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Page -->
+    <div id="dashboard-page" class="page-container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-content">
+                    <div class="stat-text">
+                        <p>Net Income</p>
+                        <p id="net-income-display">$5,000</p>
+                    </div>
+                    <svg class="icon" style="width: 2rem; height: 2rem;" viewBox="0 0 24 24">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-content">
+                    <div class="stat-text">
+                        <p>Total Spent</p>
+                        <p id="total-spent-display">$770</p>
+                    </div>
+                    <svg class="icon" style="width: 2rem; height: 2rem;" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="6"></circle>
+                        <circle cx="12" cy="12" r="2"></circle>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-content">
+                    <div class="stat-text">
+                        <p>Remaining</p>
+                        <p id="remaining-display">$4,230</p>
+                    </div>
+                    <svg class="icon" style="width: 2rem; height: 2rem;" viewBox="0 0 24 24">
+                        <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h13a1 1 0 0 1 1 1z"></path>
+                        <path d="M3 20.25A2.25 2.25 0 0 0 5.25 22.5h13.5A2.25 2.25 0 0 0 21 20.25V9.75a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9.75v10.5z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-content">
+                    <div class="stat-text">
+                        <p>Budget Health</p>
+                        <p id="budget-health-display">Good</p>
+                    </div>
+                    <svg class="icon" style="width: 2rem; height: 2rem;" viewBox="0 0 24 24">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3 class="chart-title">Budget Allocation</h3>
+                <div class="chart-container">
+                    <canvas id="pie-chart"></canvas>
+                </div>
+            </div>
+            <div class="category-status">
+                <h3 class="chart-title">Category Status</h3>
+                <div id="category-status-container"></div>
+            </div>
+        </div>
+
+        <div class="expenses-table">
+            <div class="table-header">
+                <h3 class="chart-title">Recent Expenses</h3>
+                <button class="add-btn" onclick="showAddExpenseModal()">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add Expense
+                </button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th class="amount-cell">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-expenses-tbody">
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } = Recharts;
-        
-        // Create Lucide icons manually since the CDN approach doesn't work well
-        const createIcon = (pathData, size = 24) => {
-            return React.createElement('svg', {
-                width: size,
-                height: size,
-                viewBox: '0 0 24 24',
-                fill: 'none',
-                stroke: 'currentColor',
-                strokeWidth: '2',
-                strokeLinecap: 'round',
-                strokeLinejoin: 'round'
-            }, React.createElement('path', { d: pathData }));
+    <!-- Income Page -->
+    <div id="income-page" class="page-container hidden">
+        <div class="income-section">
+            <h2 class="section-title">Managing Your Income</h2>
+            
+            <div style="margin-bottom: 2rem;">
+                <h3 class="subsection-title">Current Net Income</h3>
+                <div class="income-display">
+                    <p class="income-amount" id="current-income-display">$5,000</p>
+                    <p class="income-label">Take-Home Pay Per Month</p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <h3 class="subsection-title">Budget Breakdown</h3>
+                <div class="budget-grid" id="budget-breakdown-grid">
+                </div>
+            </div>
+
+            <div>
+                <h3 class="subsection-title">Update Income</h3>
+                <div class="update-income">
+                    <input
+                        type="number"
+                        id="income-input"
+                        class="form-input"
+                        placeholder="Enter your take-home pay"
+                        value="5000"
+                    >
+                    <button class="update-btn" onclick="updateIncome()">
+                        Update Income
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expenses Page -->
+    <div id="expenses-page" class="page-container hidden">
+        <div class="expenses-table">
+            <div class="table-header">
+                <h2 class="section-title">Expense Tracking</h2>
+                <button class="add-btn" onclick="showAddExpenseModal()">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add Expense
+                </button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th class="amount-cell">Amount</th>
+                            <th class="center-cell">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="all-expenses-tbody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Page -->
+    <div id="review-page" class="page-container hidden">
+        <h2 class="section-title">Monthly Review</h2>
+        <div class="chart-card">
+            <h3 class="chart-title">Spending Trends</h3>
+            <div class="chart-container">
+                <canvas id="line-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="expense-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="modal-title">Add New Expense</h3>
+            <div class="form-group">
+                <input
+                    type="text"
+                    id="expense-description"
+                    class="form-input"
+                    placeholder="Enter expense description"
+                >
+            </div>
+            <div class="form-group">
+                <input
+                    type="number"
+                    id="expense-amount"
+                    class="form-input"
+                    placeholder="Enter amount"
+                >
+            </div>
+            <div class="form-group">
+                <select id="expense-category" class="form-select">
+                    <option value="needs">Needs</option>
+                    <option value="wants">Wants</option>
+                    <option value="savings">Savings</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input
+                    type="date"
+                    id="expense-date"
+                    class="form-input"
+                >
+            </div>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="hideAddExpenseModal()">
+                    Cancel
+                </button>
+                <button class="submit-btn" onclick="addExpense()">
+                    Add Expense
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        let appState = {
+            currentPage: 'dashboard',
+            netIncome: 5000,
+            budgetBreakdown: { needs: 50, wants: 30, savings: 20 },
+            expenses: [
+                { id: 1, description: 'Rent', amount: 100, category: 'needs', date: '2025-07-01' },
+                { id: 2, description: 'Groceries', amount: 150, category: 'needs', date: '2025-07-03' },
+                { id: 3, description: 'Netflix', amount: 20, category: 'wants', date: '2025-07-05' },
+                { id: 4, description: 'Outings', amount: 300, category: 'wants', date: '2025-07-10' },
+                { id: 5, description: 'Savings', amount: 200, category: 'savings', date: '2025-07-12' }
+            ]
         };
 
-        const Plus = ({ className }) => createIcon('M12 5v14m-7-7h14');
-        const Trash2 = ({ className }) => createIcon('m3 6 3 0 0 0 12 0m-4 0v-1a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v1m3 0V20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h8z');
-        const DollarSign = ({ className }) => createIcon('M12 1v22m5-18H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6');
-        const Home = ({ className }) => createIcon('m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10');
-        const BarChart3 = ({ className }) => createIcon('M3 3v18h18 M18 17V9 M13 17v-6 M8 17v-3');
-        const CreditCard = ({ className }) => createIcon('M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 1-2-2V6a2 2 0 0 0-2-2z M1 10h22');
-        const Target = ({ className }) => createIcon('M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0 M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0 M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0');
-        const Wallet = ({ className }) => createIcon('M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7m9-9a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-3a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h3z');
+        // Chart instances
+        let pieChart = null;
+        let lineChart = null;
 
-        const BudgetTrackerApp = () => {
-          const [currentPage, setCurrentPage] = useState('dashboard');
-          const [netIncome, setNetIncome] = useState(5000);
-          const [budgetBreakdown, setBudgetBreakdown] = useState({ needs: 50, wants: 30, savings: 20 });
-          const [expenses, setExpenses] = useState([]);
-          const [showAddExpense, setShowAddExpense] = useState(false);
-          const [expenseForm, setExpenseForm] = useState({
-            description: '',
-            amount: '',
-            category: 'needs',
-            date: new Date().toISOString().split('T')[0]
-          });
+        // Helper Functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
 
-          useEffect(() => {
-            const demoExpenses = [
-              { id: 1, description: 'Rent', amount: 1200, category: 'needs', date: '2025-07-01' },
-              { id: 2, description: 'Groceries', amount: 150, category: 'needs', date: '2025-07-03' },
-              { id: 3, description: 'Netflix', amount: 20, category: 'wants', date: '2025-07-05' },
-              { id: 4, description: 'Dining Out', amount: 80, category: 'wants', date: '2025-07-10' },
-              { id: 5, description: 'Emergency Fund', amount: 500, category: 'savings', date: '2025-07-12' }
-            ];
-            setExpenses(demoExpenses);
-          }, []);
+        function calcBudget() {
+            return _.mapValues(appState.budgetBreakdown, (percentage) => 
+                (appState.netIncome * percentage) / 100
+            );
+        }
 
-          const calcBudget = () => _.mapValues(budgetBreakdown, (percentage) => (netIncome * percentage) / 100);
+        function calcSpending() {
+            const grouped = _.groupBy(appState.expenses, 'category');
+            return _.mapValues(grouped, (categoryExpenses) => 
+                _.sumBy(categoryExpenses, 'amount')
+            );
+        }
 
-          const calcSpending = () => {
-            const grouped = _.groupBy(expenses, 'category');
-            return _.mapValues(grouped, (categoryExpenses) => _.sumBy(categoryExpenses, 'amount'));
-          };
-
-          const getBudget = () => {
+        function getBudget() {
             const allocations = calcBudget();
             const spending = calcSpending();
             
-            return _.mapValues(allocations, (allocated, category) => ({ 
-              allocated,
-              spent: spending[category] || 0,
-              remaining: allocated - (spending[category] || 0),
-              percentage: ((spending[category] || 0) / allocated) * 100
+            return _.mapValues(allocations, (allocated, category) => ({
+                allocated,
+                spent: spending[category] || 0,
+                remaining: allocated - (spending[category] || 0),
+                percentage: ((spending[category] || 0) / allocated) * 100
             }));
-          };
+        }
 
-          const addExpense = () => {
-            if (expenseForm.description && expenseForm.amount) {
-              const newExpense = {
-                id: Date.now(),
-                ...expenseForm,
-                amount: parseFloat(expenseForm.amount)
-              };
-              setExpenses([...expenses, newExpense]);
-              setExpenseForm({
-                description: '',
-                amount: '',
-                category: 'needs',
-                date: new Date().toISOString().split('T')[0]
-              });
-              setShowAddExpense(false);
-            }
-          };
+        // Navigation
+        function switchPage(page) {
+            // Hide all pages
+            document.querySelectorAll('.page-container').forEach(p => p.classList.add('hidden'));
+            
+            // Show selected page
+            document.getElementById(page + '-page').classList.remove('hidden');
+            
+            // Update navigation buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+            
+            appState.currentPage = page;
+            
+            // Update page content
+            if (page === 'dashboard') updateDashboard();
+            else if (page === 'income') updateIncomePage();
+            else if (page === 'expenses') updateExpensesPage();
+            else if (page === 'review') updateReviewPage();
+        }
 
-          const Navigation = () => (
-            <nav className="bg-black text-white p-4 border-b border-gray-300">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <h1 className="text-xl font-bold flex items-center gap-2">
-                  <Wallet className="w-5 h-5" />
-                  Budget Tracker
-                </h1>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { key: 'dashboard', label: 'Dashboard', icon: Home },
-                    { key: 'income', label: 'Income', icon: DollarSign },
-                    { key: 'expenses', label: 'Expenses', icon: CreditCard },
-                    { key: 'review', label: 'Review', icon: BarChart3 }
-                  ].map(({ key, label, icon: Icon }) => (
-                    <button
-                      key={key}
-                      onClick={() => setCurrentPage(key)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded border transition-colors ${
-                        currentPage === key 
-                          ? 'bg-white text-black border-white' 
-                          : 'bg-black text-white border-gray-500 hover:bg-gray-800'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span className="text-sm">{label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </nav>
-          );
-
-          const DashboardPage = () => {
+        // Dashboard Functions
+        function updateDashboard() {
+            const totalSpent = _.sumBy(appState.expenses, 'amount');
+            const remaining = appState.netIncome - totalSpent;
             const budgetStatus = getBudget();
-            const totalSpent = _.sumBy(expenses, 'amount');
-            const remaining = netIncome - totalSpent;
 
-            const pieData = [
-              { name: 'Needs', value: budgetStatus.needs?.spent || 0, color: '#ef4444' },
-              { name: 'Wants', value: budgetStatus.wants?.spent || 0, color: '#f59e0b' },
-              { name: 'Savings', value: budgetStatus.savings?.spent || 0, color: '#10b981' }
-            ].filter(item => item.value > 0);
+            // Update stats
+            document.getElementById('net-income-display').textContent = formatCurrency(appState.netIncome);
+            document.getElementById('total-spent-display').textContent = formatCurrency(totalSpent);
+            document.getElementById('remaining-display').textContent = formatCurrency(remaining);
+            document.getElementById('budget-health-display').textContent = remaining >= 0 ? 'Good' : 'Over';
 
-            return (
-              <div className="p-4 sm:p-6 max-w-7xl mx-auto bg-white">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-                  <div className="bg-white p-6 rounded-lg border-2 border-black shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600">Net Income</p>
-                        <p className="text-2xl font-bold text-black">${netIncome.toLocaleString()}</p>
-                      </div>
-                      <DollarSign className="w-8 h-8 text-black" />
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white p-6 rounded-lg border-2 border-black shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600">Total Spent</p>
-                        <p className="text-2xl font-bold text-black">${totalSpent.toLocaleString()}</p>
-                      </div>
-                      <Target className="w-8 h-8 text-black" />
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white p-6 rounded-lg border-2 border-black shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600">Remaining</p>
-                        <p className="text-2xl font-bold text-black">${remaining.toLocaleString()}</p>
-                      </div>
-                      <Wallet className="w-8 h-8 text-black" />
-                    </div>
-                  </div>
+            // Update pie chart
+            updatePieChart(budgetStatus);
 
-                  <div className="bg-white p-6 rounded-lg border-2 border-black shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600">Budget Health</p>
-                        <p className="text-2xl font-bold text-black">
-                          {remaining >= 0 ? 'Good' : 'Over'}
-                        </p>
-                      </div>
-                      <BarChart3 className="w-8 h-8 text-black" />
-                    </div>
-                  </div>
-                </div>
+            // Update category status
+            updateCategoryStatus(budgetStatus);
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                  <div className="bg-white p-6 rounded-lg border-2 border-black shadow-sm">
-                    <h3 className="text-lg font-semibold mb-4 text-black">Budget Allocation</h3>
-                    {pieData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                          <Pie
-                            data={pieData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={120}
-                            paddingAngle={5}
-                            dataKey="value"
-                          >
-                            {pieData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-                          <Legend />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex items-center justify-center h-64 text-gray-500">
-                        No expenses to display
-                      </div>
-                    )}
-                  </div>
+            // Update recent expenses table
+            updateRecentExpensesTable();
+        }
 
-                  <div className="bg-white p-6 rounded-lg border-2 border-black shadow-sm">
-                    <h3 className="text-lg font-semibold mb-4 text-black">Category Status</h3>
-                    <div className="space-y-4">
-                      {Object.entries(budgetStatus).map(([category, status]) => (
-                        <div key={category} className="border-b border-gray-200 pb-3 last:border-b-0">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium capitalize text-black">{category}</span>
-                            <span className="text-sm text-gray-600">
-                              ${status.remaining.toLocaleString()} remaining
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-3">
-                            <div
-                              className={`h-3 rounded-full transition-all ${
-                                status.percentage > 100 ? 'bg-red-500' : 
-                                status.percentage > 80 ? 'bg-yellow-500' : 'bg-green-500'
-                              }`}
-                              style={{ width: `${Math.min(status.percentage, 100)}%` }}
-                            ></div>
-                          </div>
-                          <div className="flex justify-between text-sm text-gray-600 mt-1">
-                            <span>${status.spent.toLocaleString()} spent</span>
-                            <span>${status.allocated.toLocaleString()} allocated</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+        function updatePieChart(budgetStatus) {
+            const ctx = document.getElementById('pie-chart').getContext('2d');
+            
+            if (pieChart) {
+                pieChart.destroy();
+            }
 
-                <div className="bg-white p-6 rounded-lg border-2 border-black shadow-sm">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-black">Recent Expenses</h3>
-                    <button
-                      onClick={() => setShowAddExpense(true)}
-                      className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Expense
-                    </button>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border border-black">
-                      <thead>
-                        <tr className="border-b-2 border-black bg-gray-100">
-                          <th className="text-left p-3 text-black">Date</th>
-                          <th className="text-left p-3 text-black">Description</th>
-                          <th className="text-left p-3 text-black">Category</th>
-                          <th className="text-right p-3 text-black">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {expenses.slice(-5).map(expense => (
-                          <tr key={expense.id} className="border-b border-gray-200">
-                            <td className="p-3 text-black">{expense.date}</td>
-                            <td className="p-3 text-black">{expense.description}</td>
-                            <td className="p-3">
-                              <span className="px-2 py-1 rounded-full text-xs bg-gray-200 text-black">
-                                {expense.category}
-                              </span>
-                            </td>
-                            <td className="p-3 text-right text-black">${expense.amount.toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            );
-          };
-
-          const IncomePage = () => (
-            <div className="p-4 sm:p-6 max-w-4xl mx-auto bg-white">
-              <div className="bg-white p-6 rounded-lg border-2 border-black shadow-sm mb-8">
-                <h2 className="text-2xl font-bold mb-6 text-black">Managing Your Income</h2>
-                
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold mb-4 text-black">Current Net Income</h3>
-                  <div className="bg-gray-100 p-4 rounded-lg border border-gray-300">
-                    <p className="text-3xl font-bold text-black">${netIncome.toLocaleString()}</p>
-                    <p className="text-gray-600">Take-Home Pay Per Month</p>
-                  </div>
-                </div>
-
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold mb-4 text-black">Budget Breakdown</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {Object.entries(budgetBreakdown).map(([category, percentage]) => (
-                      <div key={category} className="bg-gray-100 p-4 rounded-lg border border-gray-300">
-                        <label className="block text-sm font-medium text-black mb-2 capitalize">
-                          {category} (%)
-                        </label>
-                        <input
-                          type="number"
-                          value={percentage}
-                          onChange={(e) => setBudgetBreakdown(prev => ({
-                            ...prev,
-                            [category]: parseInt(e.target.value) || 0
-                          }))}
-                          className="w-full p-2 border border-gray-300 rounded-md bg-white text-black"
-                        />
-                        <p className="text-sm text-gray-600 mt-1">
-                          ${((netIncome * percentage) / 100).toLocaleString()}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 text-black">Update Income</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input
-                      type="number"
-                      value={netIncome}
-                      onChange={(e) => setNetIncome(parseFloat(e.target.value) || 0)}
-                      className="w-full p-2 border border-gray-300 rounded-md bg-white text-black"
-                      placeholder="Enter your take-home pay"
-                    />
-                    <button className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors">
-                      Update Income
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-
-          const ExpensesPage = () => (
-            <div className="p-4 sm:p-6 max-w-6xl mx-auto bg-white">
-              <div className="bg-white p-6 rounded-lg border-2 border-black shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-black">Expense Tracking</h2>
-                  <button
-                    onClick={() => setShowAddExpense(true)}
-                    className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Expense
-                  </button>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full border border-black">
-                    <thead>
-                      <tr className="border-b-2 border-black bg-gray-100">
-                        <th className="text-left p-3 text-black">Date</th>
-                        <th className="text-left p-3 text-black">Description</th>
-                        <th className="text-left p-3 text-black">Category</th>
-                        <th className="text-right p-3 text-black">Amount</th>
-                        <th className="text-center p-3 text-black">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {expenses.map(expense => (
-                        <tr key={expense.id} className="border-b border-gray-200 hover:bg-gray-50">
-                          <td className="p-3 text-black">{expense.date}</td>
-                          <td className="p-3 text-black">{expense.description}</td>
-                          <td className="p-3">
-                            <span className="px-2 py-1 rounded-full text-xs bg-gray-200 text-black">
-                              {expense.category}
-                            </span>
-                          </td>
-                          <td className="p-3 text-right text-black">${expense.amount.toLocaleString()}</td>
-                          <td className="p-3 text-center">
-                            <button
-                              onClick={() => setExpenses(expenses.filter(e => e.id !== expense.id))}
-                              className="text-red-600 hover:text-red-800 transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          );
-
-          const ReviewPage = () => {
-            const monthlyTrend = [
-              { month: 'Jan', income: 5000, expenses: 3200 },
-              { month: 'Feb', income: 5000, expenses: 3400 },
-              { month: 'Mar', income: 5000, expenses: 3100 },
-              { month: 'Apr', income: 5000, expenses: 3600 },
-              { month: 'May', income: 5000, expenses: 3300 },
-              { month: 'Jun', income: 5000, expenses: 3500 },
-              { month: 'Jul', income: 5000, expenses: _.sumBy(expenses, 'amount') }
+            const data = [
+                { label: 'Needs', value: budgetStatus.needs?.spent || 0, color: '#ef4444' },
+                { label: 'Wants', value: budgetStatus.wants?.spent || 0, color: '#eab308' },
+                { label: 'Savings', value: budgetStatus.savings?.spent || 0, color: '#10b981' }
             ];
 
-            return (
-              <div className="p-4 sm:p-6 max-w-6xl mx-auto bg-white">
-                <h2 className="text-2xl font-bold mb-6 text-black">Monthly Review</h2>
-                
-                <div className="bg-white p-6 rounded-lg border-2 border-black shadow-sm">
-                  <h3 className="text-lg font-semibold mb-4 text-black">Spending Trends</h3>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <LineChart data={monthlyTrend}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-                      <Legend />
-                      <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} name="Income" />
-                      <Line type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={2} name="Expenses" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            );
-          };
-
-          const AddExpenseModal = () => (
-            showAddExpense && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white p-6 rounded-lg w-full max-w-md border-2 border-black">
-                  <h3 className="text-lg font-semibold mb-4 text-black">Add New Expense</h3>
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      value={expenseForm.description}
-                      onChange={(e) => setExpenseForm({...expenseForm, description: e.target.value})}
-                      className="w-full p-2 border border-gray-300 rounded-md bg-white text-black"
-                      placeholder="Enter expense description"
-                    />
-                    <input
-                      type="number"
-                      value={expenseForm.amount}
-                      onChange={(e) => setExpenseForm({...expenseForm, amount: e.target.value})}
-                      className="w-full p-2 border border-gray-300 rounded-md bg-white text-black"
-                      placeholder="Enter amount"
-                    />
-                    <select
-                      value={expenseForm.category}
-                      onChange={(e) => setExpenseForm({...expenseForm, category: e.target.value})}
-                      className="w-full p-2 border border-gray-300 rounded-md bg-white text-black"
-                    >
-                      <option value="needs">Needs</option>
-                      <option value="wants">Wants</option>
-                      <option value="savings">Savings</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={expenseForm.date}
-                      onChange={(e) => setExpenseForm({...expenseForm, date: e.target.value})}
-                      className="w-full p-2 border border-gray-300 rounded-md bg-white text-black"
-                    />
-                  </div>
-                  <div className="flex justify-end gap-2 mt-6">
-                    <button
-                      onClick={() => setShowAddExpense(false)}
-                      className="px-4 py-2 text-black hover:text-gray-600 border border-gray-300 rounded-lg bg-white transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={addExpense}
-                      className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
-                    >
-                      Add Expense
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )
-          );
-
-          const renderPage = () => {
-            switch (currentPage) {
-              case 'dashboard': return <DashboardPage />;
-              case 'income': return <IncomePage />;
-              case 'expenses': return <ExpensesPage />;
-              case 'review': return <ReviewPage />;
-              default: return <DashboardPage />;
-            }
-          };
-
-          return (
-            <div className="min-h-screen bg-gray-50">
-              <Navigation />
-              {renderPage()}
-              <AddExpenseModal />
-            </div>
-          );
-        };
-
-        // Add error handling for the render
-        try {
-          ReactDOM.render(React.createElement(BudgetTrackerApp), document.getElementById('root'));
-        } catch (error) {
-          console.error('Error rendering app:', error);
-          document.getElementById('root').innerHTML = `
-            <div style="padding: 20px; color: red;">
-              <h2>Error loading Budget Tracker</h2>
-              <p>Please check the browser console for details.</p>
-              <pre>${error.message}</pre>
-            </div>
-          `;
+            pieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: data.map(d => d.label),
+                    datasets: [{
+                        data: data.map(d => d.value),
+                        backgroundColor: data.map(d => d.color),
+                        borderWidth: 2,
+                        borderColor: '#000'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + formatCurrency(context.raw);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
-    </script>
-</body>
-</html>
+
+        function updateCategoryStatus(budgetStatus) {
+            const container = document.getElementById('category-status-container');
+            container.innerHTML = '';
+
+            Object.entries(budgetStatus).forEach(([category, status]) => {
+                const categoryItem = document.createElement('div');
+                categoryItem.className = 'category-item';
+                
+                categoryItem.innerHTML = `
+                    <div class="category-header">
+                        <span class="category-
