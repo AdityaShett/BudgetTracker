@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budget Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav>
+    <h1>Budget Tracker</h1>
+    <div id="nav-buttons">
+      <button data-page="dashboard">Dashboard</button>
+      <button data-page="income">Income</button>
+      <button data-page="expenses">Expenses</button>
+      <button data-page="review">Review</button>
+    </div>
+  </nav>
+
+  <main id="app"></main>
+
+  <div id="modal-overlay" class="hidden">
+    <div class="modal">
+      <h2>Add Expense</h2>
+      <input id="desc-input" placeholder="Description" />
+      <input id="amount-input" type="number" placeholder="Amount" />
+      <select id="category-input">
+        <option value="needs">Needs</option>
+        <option value="wants">Wants</option>
+        <option value="savings">Savings</option>
+      </select>
+      <input id="date-input" type="date" />
+      <div class="modal-actions">
+        <button id="cancel-btn">Cancel</button>
+        <button id="add-btn">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <button id="quick-add-btn" title="Add Expense">+</button>
+
+  <script src="chart.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
