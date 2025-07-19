@@ -884,4 +884,243 @@
                 
                 categoryItem.innerHTML = `
                     <div class="category-header">
-                        <span class="category-
+                        <span class="category-name">${category}</span>
+                        <span class="category-remaining">${formatCurrency(status.remaining)} remaining</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${status.percentage > 100 ? 'over' : 'normal'}"
+                             style="width: ${Math.min(status.percentage, 100)}%"></div>
+                    </div>
+                    <div class="progress-details">
+                        <span>${formatCurrency(status.spent)} spent</span>
+                        <span>${formatCurrency(status.allocated)} allocated</span>
+                    </div>
+                `;
+                
+                container.appendChild(categoryItem);
+            });
+        }
+
+        function updateRecentExpensesTable() {
+            const tbody = document.getElementById('recent-expenses-tbody');
+            tbody.innerHTML = '';
+
+            appState.expenses.slice(-5).forEach(expense => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${expense.date}</td>
+                    <td>${expense.description}</td>
+                    <td><span class="category-tag">${expense.category}</span></td>
+                    <td class="amount-cell">${formatCurrency(expense.amount)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Income Page Functions
+        function updateIncomePage() {
+            document.getElementById('current-income-display').textContent = formatCurrency(appState.netIncome);
+            document.getElementById('income-input').value = appState.netIncome;
+
+            const grid = document.getElementById('budget-breakdown-grid');
+            grid.innerHTML = '';
+
+            Object.entries(appState.budgetBreakdown).forEach(([category, percentage]) => {
+                const budgetItem = document.createElement('div');
+                budgetItem.className = 'budget-item';
+                
+                budgetItem.innerHTML = `
+                    <label class="budget-label">${category} (%)</label>
+                    <input
+                        type="number"
+                        class="form-input"
+                        value="${percentage}"
+                        onchange="updateBudgetBreakdown('${category}', this.value)"
+                    >
+                    <p class="budget-value">${formatCurrency((appState.netIncome * percentage) / 100)}</p>
+                `;
+                
+                grid.appendChild(budgetItem);
+            });
+        }
+
+        function updateBudgetBreakdown(category, value) {
+            appState.budgetBreakdown[category] = parseInt(value) || 0;
+            updateIncomePage();
+            if (appState.currentPage === 'dashboard') updateDashboard();
+        }
+
+        function updateIncome() {
+            const newIncome = parseFloat(document.getElementById('income-input').value) || 0;
+            appState.netIncome = newIncome;
+            updateIncomePage();
+            if (appState.currentPage === 'dashboard') updateDashboard();
+        }
+
+        // Expenses Page Functions
+        function updateExpensesPage() {
+            const tbody = document.getElementById('all-expenses-tbody');
+            tbody.innerHTML = '';
+
+            appState.expenses.forEach(expense => {
+                const row = document.createElement('tr');
+                row.style.transition = 'background-color 0.2s';
+                row.onmouseover = () => row.style.backgroundColor = '#f9fafb';
+                row.onmouseout = () => row.style.backgroundColor = '';
+                
+                row.innerHTML = `
+                    <td>${expense.date}</td>
+                    <td>${expense.description}</td>
+                    <td><span class="category-tag">${expense.category}</span></td>
+                    <td class="amount-cell">${formatCurrency(expense.amount)}</td>
+                    <td class="center-cell">
+                        <button class="delete-btn" onclick="deleteExpense(${expense.id})">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <polyline points="3,6 5,6 21,6"></polyline>
+                                <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                            </svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function deleteExpense(id) {
+            appState.expenses = appState.expenses.filter(e => e.id !== id);
+            updateExpensesPage();
+            if (appState.currentPage === 'dashboard') updateDashboard();
+        }
+
+        // Review Page Functions
+        function updateReviewPage() {
+            const ctx = document.getElementById('line-chart').getContext('2d');
+            
+            if (lineChart) {
+                lineChart.destroy();
+            }
+
+            const monthlyTrend = [
+                { month: 'Jan', income: 4000, expenses: 3200 },
+                { month: 'Feb', income: 4000, expenses: 3400 },
+                { month: 'Mar', income: 4000, expenses: 3100 },
+                { month: 'Apr', income: 4000, expenses: 3600 },
+                { month: 'May', income: 4000, expenses: 3300 },
+                { month: 'Jun', income: 4000, expenses: 3500 },
+                { month: 'Jul', income: 4000, expenses: _.sumBy(appState.expenses, 'amount') }
+            ];
+
+            lineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthlyTrend.map(d => d.month),
+                    datasets: [{
+                        label: 'Income',
+                        data: monthlyTrend.map(d => d.income),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1
+                    }, {
+                        label: 'Expenses',
+                        data: monthlyTrend.map(d => d.expenses),
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatCurrency(context.raw);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Modal Functions
+        function showAddExpenseModal() {
+            document.getElementById('expense-modal').classList.remove('hidden');
+            document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
+        }
+
+        function hideAddExpenseModal() {
+            document.getElementById('expense-modal').classList.add('hidden');
+            // Clear form
+            document.getElementById('expense-description').value = '';
+            document.getElementById('expense-amount').value = '';
+            document.getElementById('expense-category').value = 'needs';
+            document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
+        }
+
+        function addExpense() {
+            const description = document.getElementById('expense-description').value;
+            const amount = parseFloat(document.getElementById('expense-amount').value);
+            const category = document.getElementById('expense-category').value;
+            const date = document.getElementById('expense-date').value;
+
+            if (description && amount && date) {
+                const newExpense = {
+                    id: Date.now(),
+                    description,
+                    amount,
+                    category,
+                    date
+                };
+
+                appState.expenses.push(newExpense);
+                hideAddExpenseModal();
+                
+                // Update current page
+                if (appState.currentPage === 'dashboard') updateDashboard();
+                else if (appState.currentPage === 'expenses') updateExpensesPage();
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navigation event listeners
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchPage(btn.dataset.page);
+                });
+            });
+
+            // Modal event listeners
+            document.getElementById('expense-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideAddExpenseModal();
+                }
+            });
+
+            // Keyboard event listeners
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    hideAddExpenseModal();
+                }
+            });
+
+            // Initialize dashboard
+            updateDashboard();
+        });
+    </script>
+</body>
+</html>
