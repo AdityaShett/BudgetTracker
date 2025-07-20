@@ -11,11 +11,11 @@
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            box-sizing: content-box;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: monospace, 'Segoe UI', sans-serif;
             background-color: white;
             min-height: 100vh;
         }
@@ -34,7 +34,7 @@
         }
 
         .nav-title {
-            font-size: 1.25rem;
+            font-size: 1.0rem;
             font-weight: bold;
             display: flex;
             align-items: center;
@@ -52,7 +52,7 @@
             gap: 0.5rem;
             padding: 0.5rem 0.75rem;
             border-radius: 0.375rem;
-            border: 2px solid #e5e5e5;
+            border: 2px solid white;
             background-color: black;
             color: white;
             cursor: pointer;
@@ -60,7 +60,7 @@
         }
 
         .nav-btn:hover {
-            background-color: #374151;
+            background-color: grey;
         }
 
         .nav-btn.active {
@@ -79,7 +79,7 @@
 
         .page-container {
             padding: 1.5rem;
-            max-width: 1280px;
+            max-width: 1120px;
             margin: 0 auto;
             background-color: white;
         }
@@ -106,7 +106,7 @@
 
         .stat-text p:first-child {
             font-size: 0.875rem;
-            color: #6b7280;
+            color: grey;
         }
 
         .stat-text p:last-child {
@@ -130,8 +130,8 @@
         }
 
         .chart-title {
-            font-size: 1.125rem;
-            font-weight: 600;
+            font-size: 1.0rem;
+            font-weight: 500;
             margin-bottom: 1rem;
             color: black;
         }
@@ -144,13 +144,12 @@
 
         .category-status {
             background-color: white;
-            padding: 1.5rem;
+            padding: 1.0rem;
             border-radius: 0.5rem;
-            border: 2px solid black;
         }
 
         .category-item {
-            border-bottom: 2px solid #d1d5db;
+            border-bottom: 2px solid gainsboro;
             padding-bottom: 0.75rem;
             margin-bottom: 1rem;
         }
@@ -170,13 +169,13 @@
 
         .category-remaining {
             font-size: 0.875rem;
-            color: #6b7280;
+            color: grey;
         }
 
         .progress-bar {
             width: 100%;
-            background-color: #d1d5db;
-            border-radius: 9999px;
+            background-color: gainsboro;
+            border-radius: 10000px;
             height: 0.75rem;
             border: 1px solid black;
             overflow: hidden;
@@ -184,7 +183,7 @@
 
         .progress-fill {
             height: 100%;
-            border-radius: 9999px;
+            border-radius: 10000px;
             transition: width 0.3s ease;
         }
 
@@ -193,14 +192,14 @@
         }
 
         .progress-fill.over {
-            background-color: #6b7280;
+            background-color: grey;
         }
 
         .progress-details {
             display: flex;
             justify-content: space-between;
             font-size: 0.875rem;
-            color: #6b7280;
+            color: grey;
             margin-top: 0.25rem;
         }
 
@@ -228,11 +227,11 @@
             border-radius: 0.5rem;
             border: 2px solid black;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color 0.1s;
         }
 
         .add-btn:hover {
-            background-color: #374151;
+            background-color: darkslategrey;
         }
 
         table {
@@ -268,9 +267,9 @@
 
         .category-tag {
             padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
+            border-radius: 10000px;
             font-size: 0.75rem;
-            background-color: #e5e7eb;
+            background-color: lightgrey;
             color: black;
             border: 1px solid black;
         }
@@ -282,7 +281,7 @@
         }
 
         .delete-btn:hover {
-            color: #6b7280;
+            color: grey;
         }
 
         .modal-overlay {
@@ -345,7 +344,7 @@
         }
 
         .cancel-btn:hover {
-            color: #6b7280;
+            color: grey;
         }
 
         .submit-btn {
@@ -353,7 +352,7 @@
             background-color: black;
             color: white;
             border-radius: 0.5rem;
-            border: 2px solid black;
+            border: 2px black;
             cursor: pointer;
             transition: background-color 0.2s;
         }
@@ -366,7 +365,7 @@
             background-color: white;
             padding: 1.5rem;
             border-radius: 0.5rem;
-            border: 2px solid black;
+            border: 2px black;
             margin-bottom: 2rem;
         }
 
@@ -399,7 +398,7 @@
         }
 
         .income-label {
-            color: #6b7280;
+            color: grey;
         }
 
         .budget-grid {
@@ -427,7 +426,7 @@
 
         .budget-value {
             font-size: 0.875rem;
-            color: #6b7280;
+            color: grey;
             margin-top: 0.25rem;
         }
 
@@ -520,7 +519,6 @@
         </div>
     </nav>
 
-    <!-- Dashboard Page -->
     <div id="dashboard-page" class="page-container">
         <div class="stats-grid">
             <div class="stat-card">
@@ -616,7 +614,6 @@
         </div>
     </div>
 
-    <!-- Income Page -->
     <div id="income-page" class="page-container hidden">
         <div class="income-section">
             <h2 class="section-title">Managing Your Income</h2>
@@ -653,7 +650,6 @@
         </div>
     </div>
 
-    <!-- Expenses Page -->
     <div id="expenses-page" class="page-container hidden">
         <div class="expenses-table">
             <div class="table-header">
@@ -684,7 +680,6 @@
         </div>
     </div>
 
-    <!-- Review Page -->
     <div id="review-page" class="page-container hidden">
         <h2 class="section-title">Monthly Review</h2>
         <div class="chart-card">
@@ -695,7 +690,6 @@
         </div>
     </div>
 
-    <!-- Add Expense Modal -->
     <div id="expense-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3 class="modal-title">Add New Expense</h3>
@@ -741,29 +735,22 @@
     </div>
 
     <script>
-        // Application State
         let appState = {
             currentPage: 'dashboard',
             netIncome: 5000,
             budgetBreakdown: { needs: 50, wants: 30, savings: 20 },
             expenses: [
                 { id: 1, description: 'Rent', amount: 100, category: 'needs', date: '2025-07-01' },
-                { id: 2, description: 'Groceries', amount: 150, category: 'needs', date: '2025-07-03' },
-                { id: 3, description: 'Netflix', amount: 20, category: 'wants', date: '2025-07-05' },
-                { id: 4, description: 'Outings', amount: 300, category: 'wants', date: '2025-07-10' },
-                { id: 5, description: 'Savings', amount: 200, category: 'savings', date: '2025-07-12' }
             ]
         };
 
-        // Chart instances
         let pieChart = null;
         let lineChart = null;
 
-        // Helper Functions
         function formatCurrency(amount) {
             return new Intl.NumberFormat('en-US', {
                 style: 'currency',
-                currency: 'USD'
+                currency: 'CAD'
             }).format(amount);
         }
 
@@ -792,46 +779,32 @@
             }));
         }
 
-        // Navigation
         function switchPage(page) {
-            // Hide all pages
             document.querySelectorAll('.page-container').forEach(p => p.classList.add('hidden'));
-            
-            // Show selected page
             document.getElementById(page + '-page').classList.remove('hidden');
-            
-            // Update navigation buttons
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`[data-page="${page}"]`).classList.add('active');
             
             appState.currentPage = page;
             
-            // Update page content
             if (page === 'dashboard') updateDashboard();
             else if (page === 'income') updateIncomePage();
             else if (page === 'expenses') updateExpensesPage();
             else if (page === 'review') updateReviewPage();
         }
 
-        // Dashboard Functions
         function updateDashboard() {
             const totalSpent = _.sumBy(appState.expenses, 'amount');
             const remaining = appState.netIncome - totalSpent;
             const budgetStatus = getBudget();
 
-            // Update stats
             document.getElementById('net-income-display').textContent = formatCurrency(appState.netIncome);
             document.getElementById('total-spent-display').textContent = formatCurrency(totalSpent);
             document.getElementById('remaining-display').textContent = formatCurrency(remaining);
             document.getElementById('budget-health-display').textContent = remaining >= 0 ? 'Good' : 'Over';
 
-            // Update pie chart
             updatePieChart(budgetStatus);
-
-            // Update category status
             updateCategoryStatus(budgetStatus);
-
-            // Update recent expenses table
             updateRecentExpensesTable();
         }
 
@@ -843,9 +816,9 @@
             }
 
             const data = [
-                { label: 'Needs', value: budgetStatus.needs?.spent || 0, color: '#ef4444' },
-                { label: 'Wants', value: budgetStatus.wants?.spent || 0, color: '#eab308' },
-                { label: 'Savings', value: budgetStatus.savings?.spent || 0, color: '#10b981' }
+                { label: 'Needs', value: budgetStatus.needs?.spent || 0, color: 'red' },
+                { label: 'Wants', value: budgetStatus.wants?.spent || 0, color: '#8B8000' },
+                { label: 'Savings', value: budgetStatus.savings?.spent || 0, color: 'green' }
             ];
 
             pieChart = new Chart(ctx, {
@@ -855,8 +828,6 @@
                     datasets: [{
                         data: data.map(d => d.value),
                         backgroundColor: data.map(d => d.color),
-                        borderWidth: 2,
-                        borderColor: '#000'
                     }]
                 },
                 options: {
@@ -918,7 +889,6 @@
             });
         }
 
-        // Income Page Functions
         function updateIncomePage() {
             document.getElementById('current-income-display').textContent = formatCurrency(appState.netIncome);
             document.getElementById('income-input').value = appState.netIncome;
@@ -958,7 +928,6 @@
             if (appState.currentPage === 'dashboard') updateDashboard();
         }
 
-        // Expenses Page Functions
         function updateExpensesPage() {
             const tbody = document.getElementById('all-expenses-tbody');
             tbody.innerHTML = '';
@@ -993,7 +962,6 @@
             if (appState.currentPage === 'dashboard') updateDashboard();
         }
 
-        // Review Page Functions
         function updateReviewPage() {
             const ctx = document.getElementById('line-chart').getContext('2d');
             
@@ -1002,13 +970,8 @@
             }
 
             const monthlyTrend = [
-                { month: 'Jan', income: 4000, expenses: 3200 },
-                { month: 'Feb', income: 4000, expenses: 3400 },
-                { month: 'Mar', income: 4000, expenses: 3100 },
-                { month: 'Apr', income: 4000, expenses: 3600 },
-                { month: 'May', income: 4000, expenses: 3300 },
-                { month: 'Jun', income: 4000, expenses: 3500 },
-                { month: 'Jul', income: 4000, expenses: _.sumBy(appState.expenses, 'amount') }
+                { month: 'Jan', income: 4000, expenses: 200 },
+                { month: 'Feb', income: 4000, expenses: _.sumBy(appState.expenses, 'amount') }
             ];
 
             lineChart = new Chart(ctx, {
@@ -1057,7 +1020,6 @@
             });
         }
 
-        // Modal Functions
         function showAddExpenseModal() {
             document.getElementById('expense-modal').classList.remove('hidden');
             document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
@@ -1065,7 +1027,7 @@
 
         function hideAddExpenseModal() {
             document.getElementById('expense-modal').classList.add('hidden');
-            // Clear form
+
             document.getElementById('expense-description').value = '';
             document.getElementById('expense-amount').value = '';
             document.getElementById('expense-category').value = 'needs';
@@ -1096,30 +1058,26 @@
             }
         }
 
-        // Event Listeners
         document.addEventListener('DOMContentLoaded', function() {
-            // Navigation event listeners
+
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     switchPage(btn.dataset.page);
                 });
             });
 
-            // Modal event listeners
             document.getElementById('expense-modal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     hideAddExpenseModal();
                 }
             });
 
-            // Keyboard event listeners
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     hideAddExpenseModal();
                 }
             });
 
-            // Initialize dashboard
             updateDashboard();
         });
     </script>
