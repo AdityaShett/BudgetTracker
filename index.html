@@ -741,6 +741,8 @@
             budgetBreakdown: { needs: 50, wants: 30, savings: 20 },
             expenses: [
                 { id: 1, description: 'Rent', amount: 100, category: 'needs', date: '2025-07-01' },
+                { id: 1, description: 'Metal Gear Solid', amount: 50, category: 'wants', date: '2025-07-01' },
+                { id: 1, description: 'extra money', amount: 2000, category: 'savings', date: '2025-07-01' }
             ]
         };
 
@@ -1051,8 +1053,7 @@
 
                 appState.expenses.push(newExpense);
                 hideAddExpenseModal();
-                
-                // Update current page
+
                 if (appState.currentPage === 'dashboard') updateDashboard();
                 else if (appState.currentPage === 'expenses') updateExpensesPage();
             }
